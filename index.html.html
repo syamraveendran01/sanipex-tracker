@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sanipex Photoshoot Tracker — Management Presentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A3A6C;--blue:#006EC7;--light-blue:#E8F3FF;--accent:#0099FF;
+  --white:#FFFFFF;--dark:#1A1A2E;--gray:#6B7B8D;--light-gray:#F7F9FC;
+  --green:#00966D;--green-light:#EDF9F4;--amber:#E67E22;--amber-light:#FFF3E0;
+  --red:#C0392B;--red-light:#FFEBEB;--border:#D0DEEE;
+}
+html,body{height:100%;width:100%;font-family:'Inter',sans-serif;background:#0d1117;overflow:hidden}
+#app{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.slide-wrapper{width:100%;height:100%;position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;opacity:0;transform:translateX(60px);transition:opacity .45s cubic-bezier(.4,0,.2,1),transform .45s cubic-bezier(.4,0,.2,1);pointer-events:none;overflow:hidden}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+
+/* NAV */
+#nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 20px;z-index:999}
+.nav-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.nav-btn:hover{background:var(--blue)}
+.nav-dots{display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:background .2s,transform .2s}
+.dot.active{background:#fff;transform:scale(1.4)}
+#slide-counter{color:rgba(255,255,255,.6);font-size:11px;min-width:40px;text-align:center}
+#kb-hint{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.3);font-size:10px;animation:fadeout 4s forwards 3s}
+@keyframes fadeout{to{opacity:0}}
+
+/* SHARED HEADER/FOOTER */
+.slide-full{display:flex;flex-direction:column;height:100%}
+.slide-header{background:var(--navy);padding:15px 44px 13px;border-bottom:4px solid var(--blue);flex-shrink:0}
+.slide-header .eyebrow{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:3px}
+.slide-header h2{font-size:clamp(17px,2vw,24px);font-weight:800;color:var(--white);line-height:1.2}
+.slide-body{flex:1;background:var(--light-gray);padding:20px 44px 16px;overflow-y:auto;display:flex;flex-direction:column;min-height:0}
+.slide-footer{background:var(--navy);padding:7px 44px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.slide-footer span{color:rgba(176,200,232,.55);font-size:9px;letter-spacing:1px}
+
+/* ANIMATIONS */
+.animate-in{animation:slideUp .5s cubic-bezier(.4,0,.2,1) both}
+@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.delay-1{animation-delay:.1s}.delay-2{animation-delay:.2s}.delay-3{animation-delay:.3s}
+.delay-4{animation-delay:.4s}.delay-5{animation-delay:.5s}.delay-6{animation-delay:.6s}
+@keyframes rowFlash{0%{background:rgba(0,110,199,.18)}100%{}}
+.row-flash{animation:rowFlash .7s ease}
+@keyframes countUp{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{stroke-dashoffset:0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ══════════════════════
+   SLIDE 1 — TITLE
+══════════════════════ */
+#s1{background:linear-gradient(135deg,#0F2650 0%,#1A3A6C 55%,#0A1F45 100%);display:flex;flex-direction:column}
+.s1-accent-bar{width:6px;height:100%;background:linear-gradient(to bottom,var(--accent),var(--blue));position:absolute;left:0;top:0}
+.s1-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding:50px 70px 30px 86px;position:relative;z-index:2}
+.s1-eyebrow{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.s1-title{font-size:clamp(40px,5.2vw,68px);font-weight:900;color:var(--white);line-height:1.06;margin-bottom:6px}
+.s1-title span{color:var(--accent)}
+.s1-subtitle{font-size:clamp(12px,1.3vw,16px);color:rgba(176,200,232,.85);font-style:italic;margin-top:14px;max-width:560px;line-height:1.65}
+.s1-tags{display:flex;gap:10px;margin-top:32px;flex-wrap:wrap}
+.s1-tag{padding:8px 18px;background:rgba(0,110,199,.6);color:#fff;border-radius:40px;font-size:11px;font-weight:700;letter-spacing:.5px;border:1px solid rgba(0,153,255,.3);backdrop-filter:blur(6px)}
+.s1-footer{padding:14px 86px;background:rgba(15,38,80,.8);display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.08);position:relative;z-index:2}
+.s1-footer-brand{color:rgba(176,200,232,.55);font-size:10px;letter-spacing:1px}
+
+/* RIGHT PANEL decoration */
+.s1-right{position:absolute;right:0;top:0;bottom:0;width:38%;display:flex;align-items:center;justify-content:center;z-index:1}
+.s1-ring-wrap{position:relative;width:260px;height:260px}
+.s1-ring-wrap svg{position:absolute;inset:0}
+.s1-icon-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.s1-icon{font-size:52px;animation:float 3s ease-in-out infinite}
+.s1-icon-label{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.5);text-transform:uppercase}
+
+/* KPI strip on slide 1 */
+.s1-kpi-strip{display:flex;gap:0;margin-top:36px}
+.s1-kpi{flex:1;padding:14px 0;border-right:1px solid rgba(255,255,255,.1);padding-left:20px}
+.s1-kpi:first-child{padding-left:0}
+.s1-kpi:last-child{border-right:none}
+.s1-kpi-num{font-size:clamp(22px,2.5vw,32px);font-weight:900;color:var(--accent)}
+.s1-kpi-lbl{font-size:10px;color:rgba(176,200,232,.6);margin-top:2px}
+
+/* ══════════════════════
+   SLIDE 2 — EXEC SUMMARY
+══════════════════════ */
+.exec-intro{background:var(--white);border-left:4px solid var(--blue);padding:12px 18px;border-radius:0 8px 8px 0;font-size:12.5px;color:var(--dark);line-height:1.65;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.cards-row{display:flex;gap:16px;flex:1;min-height:0}
+.exec-card{flex:1;background:var(--white);border-radius:12px;border:1px solid var(--border);padding:20px 18px;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.exec-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.exec-card .card-top-bar{height:4px;border-radius:4px;margin-bottom:6px}
+.bar-red{background:var(--red)}.bar-blue{background:var(--blue)}.bar-green{background:var(--green)}
+.exec-card .icon{font-size:26px}
+.exec-card h3{font-size:14px;font-weight:700;color:var(--navy)}
+.exec-card p{font-size:11.5px;color:var(--gray);line-height:1.65}
+.exec-card .card-watermark{position:absolute;right:-10px;bottom:-10px;font-size:70px;opacity:.04;line-height:1}
+
+/* Impact metrics row inside exec summary */
+.impact-strip{display:flex;gap:12px;margin-top:14px}
+.impact-chip{flex:1;background:linear-gradient(135deg,var(--navy),#0F2650);border-radius:10px;padding:12px 10px;text-align:center;color:#fff}
+.impact-chip .ic-num{font-size:22px;font-weight:900;color:var(--accent)}
+.impact-chip .ic-lbl{font-size:9.5px;color:rgba(255,255,255,.6);margin-top:3px;line-height:1.4}
+
+/* ══════════════════════
+   SLIDE 3 — BEFORE
+══════════════════════ */
+.steps-row{display:flex;gap:8px;flex:1;min-height:0}
+.step-card{flex:1;background:var(--white);border-radius:10px;border:1px solid var(--border);padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.05);position:relative;overflow:hidden}
+.step-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.step-icon{font-size:26px}
+.step-title{font-size:11.5px;font-weight:700;color:var(--navy)}
+.step-desc{font-size:10px;color:var(--gray);line-height:1.5}
+.step-pain{margin-top:auto;background:var(--red-light);border-radius:6px;padding:4px 7px;font-size:9px;color:var(--red);font-weight:600;width:100%}
+.arrow-step{color:var(--border);font-size:18px;display:flex;align-items:center;padding-top:28px;flex-shrink:0}
+.before-summary{background:var(--red-light);border:1px solid rgba(192,57,43,.2);border-radius:8px;padding:11px 16px;font-size:11.5px;color:var(--red);font-weight:600;margin-top:12px;line-height:1.5}
+
+/* Time cost banner */
+.time-banner{display:flex;gap:12px;margin-bottom:14px}
+.time-chip{flex:1;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.time-chip .tc-icon{font-size:20px}
+.time-chip .tc-text strong{font-size:13px;color:var(--navy);display:block}
+.time-chip .tc-text span{font-size:10px;color:var(--gray)}
+
+/* ══════════════════════
+   SLIDE 4 — PAIN POINTS
+══════════════════════ */
+.pain-list{display:flex;flex-direction:column;gap:14px;flex:1}
+.pain-item{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:16px 20px;display:flex;gap:16px;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.05);transition:transform .2s,box-shadow .2s}
+.pain-item:hover{transform:translateX(4px);box-shadow:4px 4px 20px rgba(0,0,0,.08)}
+.pain-bar{width:5px;border-radius:4px;align-self:stretch;flex-shrink:0}
+.pain-icon{font-size:26px;flex-shrink:0}
+.pain-text h3{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.pain-text p{font-size:11.5px;color:var(--gray);line-height:1.65}
+
+/* Quote callout */
+.quote-box{background:linear-gradient(135deg,#0F2650,#1A3A6C);border-radius:10px;padding:16px 22px;color:#fff;margin-top:10px;display:flex;gap:14px;align-items:center}
+.quote-box .qb-icon{font-size:28px;flex-shrink:0}
+.quote-box .qb-text{font-size:12px;line-height:1.65;color:rgba(255,255,255,.85);font-style:italic}
+.quote-box .qb-text strong{color:var(--accent);font-style:normal}
+
+/* ══════════════════════
+   SLIDE 5 — SOLUTION
+══════════════════════ */
+.solution-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
+.sol-panel{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);display:flex;flex-direction:column}
+.sol-panel-header{padding:11px 16px;font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#fff}
+.sol-panel-body{padding:16px;flex:1}
+.criteria-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border)}
+.criteria-item:last-child{border-bottom:none}
+.criteria-num{width:24px;height:24px;border-radius:6px;background:var(--blue);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.criteria-text strong{font-size:11.5px;color:var(--navy);display:block;margin-bottom:2px}
+.criteria-text span{font-size:10.5px;color:var(--gray)}
+.flow-note{background:linear-gradient(135deg,#E8F3FF,#F0F8FF);border:1px solid rgba(0,110,199,.2);border-radius:8px;padding:9px 13px;font-size:10.5px;color:var(--navy);font-weight:600;margin-top:12px}
+.exc-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;font-size:11.5px;color:var(--gray)}
+.exc-item::before{content:'•';color:var(--amber);font-weight:900;flex-shrink:0}
+.scope-note{background:var(--light-blue);border:1px solid rgba(0,110,199,.15);border-radius:8px;padding:12px;font-size:11px;color:var(--dark);line-height:1.65}
+.scope-note strong{color:var(--navy);display:block;margin-bottom:5px}
+
+/* ══════════════════════
+   SLIDE 6 — WORKFLOW
+══════════════════════ */
+.state-table{width:100%;border-collapse:collapse}
+.state-table thead tr{background:var(--navy)}
+.state-table thead th{padding:11px 16px;text-align:left;font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:1px;text-transform:uppercase}
+.state-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+.state-table tbody tr:hover{background:var(--light-blue)}
+.state-table td{padding:12px 16px;vertical-align:middle}
+.state-badge{display:inline-flex;align-items:center;padding:5px 13px;border-radius:20px;font-size:10.5px;font-weight:700;color:#fff;white-space:nowrap}
+.trigger-cell{font-size:11.5px;font-weight:600;color:var(--dark)}
+.auto-cell{font-size:11.5px;color:var(--gray);line-height:1.6}
+.arrow-cell{font-size:16px;color:var(--blue);text-align:center}
+.state-table-wrap{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+
+/* Flow diagram below table */
+.flow-diagram{display:flex;align-items:center;gap:0;margin-top:14px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 20px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.flow-node{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.flow-node-circle{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid transparent}
+.flow-node-label{font-size:9.5px;font-weight:700;color:var(--navy);text-align:center}
+.flow-node-sub{font-size:8.5px;color:var(--gray);text-align:center}
+.flow-arrow{font-size:20px;color:var(--border);flex-shrink:0;padding:0 4px}
+
+/* ══════════════════════
+   SLIDE 7 — LIVE PORTAL
+══════════════════════ */
+.portal-layout{display:flex;gap:14px;flex:1;min-height:0}
+.portal-frame{flex:1;background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);display:flex;flex-direction:column}
+.portal-topbar{background:var(--light-gray);padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.portal-search{flex:1;background:var(--white);border:1px solid var(--border);border-radius:6px;padding:6px 11px;font-size:11px;color:var(--gray);display:flex;align-items:center;gap:6px}
+.portal-table{width:100%;border-collapse:collapse}
+.portal-table thead th{background:var(--navy);color:#fff;padding:8px 12px;font-size:9.5px;font-weight:700;text-align:left;letter-spacing:.5px}
+.portal-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+.portal-table tbody tr:hover{background:var(--light-blue)}
+.portal-table td{padding:9px 12px;font-size:10.5px;color:var(--dark);vertical-align:middle}
+.status-pill{display:inline-flex;padding:3px 10px;border-radius:12px;font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap;transition:background .3s}
+.action-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;font-size:9.5px;font-weight:700;color:#fff;cursor:pointer;border:none;transition:opacity .15s,transform .1s,background .2s;margin-right:3px;font-family:'Inter',sans-serif}
+.action-btn:hover{opacity:.85;transform:scale(1.04)}
+.action-btn:active{transform:scale(.97)}
+.action-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-assign{background:var(--blue)}.btn-notreq{background:var(--gray)}.btn-return{background:var(--navy)}.btn-complete{background:var(--green)}
+
+/* Right side panel */
+.portal-right{width:230px;display:flex;flex-direction:column;gap:12px}
+
+/* Activity log */
+.activity-log{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);display:flex;flex-direction:column;flex:1}
+.log-header{background:var(--navy);padding:9px 13px;font-size:9.5px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,.9);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.log-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;animation:pulse 1.5s infinite}
+.log-body{padding:9px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.log-entry{background:var(--light-gray);border-radius:6px;padding:7px 9px;border-left:3px solid var(--border);animation:slideUp .3s ease}
+.log-entry.assign{border-left-color:var(--blue)}.log-entry.inprogress{border-left-color:var(--amber)}.log-entry.complete{border-left-color:var(--green)}.log-entry.notreq{border-left-color:var(--gray)}.log-entry.reset{border-left-color:var(--red)}
+.log-entry .log-time{font-size:8.5px;color:var(--gray);margin-bottom:2px}
+.log-entry .log-text{font-size:10px;color:var(--dark);line-height:1.45}
+.log-empty{font-size:10.5px;color:var(--gray);text-align:center;padding:16px;font-style:italic}
+
+/* Stats */
+.stats-bar{display:flex;gap:8px;margin-bottom:12px;flex-shrink:0}
+.stat-chip{flex:1;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:9px 10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);position:relative;overflow:hidden}
+.stat-chip::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.stat-chip.chip-blue::before{background:var(--blue)}.stat-chip.chip-amber::before{background:var(--amber)}.stat-chip.chip-green::before{background:var(--green)}.stat-chip.chip-gray::before{background:var(--gray)}
+.stat-chip .stat-num{font-size:20px;font-weight:900;color:var(--navy)}
+.stat-chip.chip-blue .stat-num{color:var(--blue)}.stat-chip.chip-amber .stat-num{color:var(--amber)}.stat-chip.chip-green .stat-num{color:var(--green)}.stat-chip.chip-gray .stat-num{color:var(--gray)}
+.stat-chip .stat-lbl{font-size:8.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
+
+/* Progress donut inside portal right panel */
+.donut-panel{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.05);flex-shrink:0}
+.donut-title{font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:var(--navy);text-transform:uppercase;margin-bottom:10px}
+.donut-wrap{display:flex;align-items:center;gap:12px}
+#donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:5px;font-size:9.5px}
+.dl-item{display:flex;align-items:center;gap:6px}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dl-text{color:var(--dark)}
+
+/* ══════════════════════
+   SLIDE 8 — BEFORE/AFTER
+══════════════════════ */
+.comparison{display:flex;gap:0;flex:1;min-height:0}
+.comp-col{flex:1;display:flex;flex-direction:column;overflow:hidden;border-radius:10px}
+.comp-col-header{padding:13px 18px;font-size:13px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+.comp-rows{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.comp-row{flex:1;display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,.05);font-size:11.5px;transition:filter .15s}
+.comp-row:hover{filter:brightness(.97)}
+.comp-row:last-child{border-bottom:none}
+.comp-row.before{background:#fff0f0;color:var(--red)}.comp-row.before:nth-child(even){background:#ffe8e8}
+.comp-row.after{background:#f0faf5;color:var(--green)}.comp-row.after:nth-child(even){background:#e6f7ef}
+.comp-row.after.highlight{background:var(--navy);color:#fff;font-weight:700}
+.comp-divider{width:6px;background:var(--blue);flex-shrink:0;align-self:stretch}
+
+/* Outcome strip at bottom of s8 */
+.outcome-strip{display:flex;gap:12px;margin-top:14px;flex-shrink:0}
+.outcome-chip{flex:1;background:linear-gradient(135deg,#0F2650,#1A3A6C);border-radius:10px;padding:13px 14px;color:#fff;display:flex;gap:10px;align-items:center}
+.outcome-chip .oc-icon{font-size:22px;flex-shrink:0}
+.outcome-chip .oc-num{font-size:20px;font-weight:900;color:var(--accent)}
+.outcome-chip .oc-lbl{font-size:10px;color:rgba(255,255,255,.65);margin-top:2px}
+
+/* TOAST */
+#toast{position:fixed;top:22px;right:22px;z-index:9999;background:var(--navy);color:#fff;padding:11px 18px;border-radius:10px;font-size:11.5px;font-weight:600;line-height:1.5;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:10px;transform:translateY(-80px);opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;max-width:300px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast .toast-icon{font-size:16px;flex-shrink:0}
+#toast .toast-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 10px 10px}
+#toast.show .toast-bar{animation:toastbar 3s linear forwards}
+@keyframes toastbar{from{width:100%}to{width:0%}}
+</style>
+</head>
+<body>
+<div id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg">Status updated</span><div class="toast-bar"></div></div>
+
+<div id="app">
+<div class="slide-wrapper">
+
+<!-- ══ SLIDE 1: TITLE ══ -->
+<div class="slide active" id="s1">
+  <div class="s1-accent-bar"></div>
+  <div class="s1-content">
+    <div class="s1-eyebrow animate-in">Internal Initiative · Digital Operations · SANIPEXGROUP</div>
+    <div class="s1-title animate-in delay-1">Photoshoot<br>Tracker <span>Module</span></div>
+    <div class="s1-subtitle animate-in delay-2">Automating stock movement and standardising real-time visibility for own-brand product photography across all three brands.</div>
+    <div class="s1-kpi-strip animate-in delay-3">
+      <div class="s1-kpi"><div class="s1-kpi-num" data-count="5">0</div><div class="s1-kpi-lbl">Manual Steps Eliminated</div></div>
+      <div class="s1-kpi"><div class="s1-kpi-num" data-count="3">0</div><div class="s1-kpi-lbl">Brands Covered</div></div>
+      <div class="s1-kpi"><div class="s1-kpi-num">AX</div><div class="s1-kpi-lbl">ERP Integration</div></div>
+      <div class="s1-kpi"><div class="s1-kpi-num">100%</div><div class="s1-kpi-lbl">Audit Trail</div></div>
+    </div>
+    <div class="s1-tags animate-in delay-4">
+      <div class="s1-tag">📦 Own-Brand Products</div>
+      <div class="s1-tag">⚙️ AX ERP Integration</div>
+      <div class="s1-tag">🔄 Zero Manual Bin Moves</div>
+      <div class="s1-tag">📊 Real-Time Status</div>
+    </div>
+  </div>
+  <div class="s1-right animate-in delay-3">
+    <div class="s1-ring-wrap">
+      <svg viewBox="0 0 260 260" width="260" height="260">
+        <circle cx="130" cy="130" r="118" fill="none" stroke="rgba(0,153,255,.08)" stroke-width="20"/>
+        <circle cx="130" cy="130" r="90"  fill="none" stroke="rgba(0,153,255,.06)" stroke-width="16"/>
+        <circle cx="130" cy="130" r="62"  fill="none" stroke="rgba(0,153,255,.05)" stroke-width="12"/>
+        <circle cx="130" cy="130" r="118" fill="none" stroke="rgba(0,153,255,.25)" stroke-width="3" stroke-dasharray="740" stroke-dashoffset="185" stroke-linecap="round" transform="rotate(-90 130 130)"/>
+        <circle cx="130" cy="130" r="90"  fill="none" stroke="rgba(0,110,199,.3)"  stroke-width="3" stroke-dasharray="565" stroke-dashoffset="141" stroke-linecap="round" transform="rotate(-90 130 130)"/>
+      </svg>
+      <div class="s1-icon-center">
+        <div class="s1-icon">📸</div>
+        <div class="s1-icon-label">Live Tracker</div>
+      </div>
+    </div>
+  </div>
+  <div class="s1-footer">
+    <div class="s1-footer-brand">SANIPEXGROUP · BYSTRO · BAGNODESIGN · GYMKHANA</div>
+    <div class="s1-footer-brand">June 2025 · Confidential</div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 2: EXEC SUMMARY ══ -->
+<div class="slide" id="s2">
+  <div class="slide-full">
+    <div class="slide-header">
+      <div class="eyebrow">Executive Summary</div>
+      <h2>Photoshoot Tracker Module — What, Why & Impact</h2>
+    </div>
+    <div class="slide-body">
+      <div class="exec-intro animate-in">The <strong>Photoshoot Tracker</strong> is a purpose-built internal portal that digitises and automates the end-to-end lifecycle of own-brand product photography — from stock identification through to shoot completion and automatic bin reversion in AX.</div>
+      <div class="cards-row">
+        <div class="exec-card animate-in delay-1">
+          <div class="card-top-bar bar-red"></div>
+          <div class="icon">🎯</div>
+          <h3>The Problem</h3>
+          <p>Own-brand product shoots managed entirely manually — scattered stock, no system visibility, and error-prone Excel tracking create delays and coordination failures.</p>
+          <div class="card-watermark">🎯</div>
+        </div>
+        <div class="exec-card animate-in delay-2">
+          <div class="card-top-bar bar-blue"></div>
+          <div class="icon">⚙️</div>
+          <h3>The Solution</h3>
+          <p>A centralised portal that auto-populates eligible products from AX, automates bin-to-bin transfers via the AX API, and provides real-time shoot status to all stakeholders.</p>
+          <div class="card-watermark">⚙️</div>
+        </div>
+        <div class="exec-card animate-in delay-3">
+          <div class="card-top-bar bar-green"></div>
+          <div class="icon">📈</div>
+          <h3>The Impact</h3>
+          <p>Eliminates 5 manual steps per product, removes Excel dependency, reduces stock displacement risk, and delivers a full audit trail with live visibility across all teams.</p>
+          <div class="card-watermark">📈</div>
+        </div>
+      </div>
+      <div class="impact-strip animate-in delay-4">
+        <div class="impact-chip"><div class="ic-num" data-count="5">0</div><div class="ic-lbl">Manual steps<br>eliminated</div></div>
+        <div class="impact-chip"><div class="ic-num" data-count="3">0</div><div class="ic-lbl">Brands<br>covered</div></div>
+        <div class="impact-chip"><div class="ic-num">0</div><div class="ic-lbl">Paper trackers<br>remaining</div></div>
+        <div class="impact-chip"><div class="ic-num">100%</div><div class="ic-lbl">Audit trail<br>coverage</div></div>
+        <div class="impact-chip"><div class="ic-num">1</div><div class="ic-lbl">Click to assign<br>any product</div></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>2 / 8</span></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 3: BEFORE ══ -->
+<div class="slide" id="s3">
+  <div class="slide-full">
+    <div class="slide-header" style="border-bottom-color:var(--red)">
+      <div class="eyebrow" style="color:#ff8080">Before State · The Problem</div>
+      <h2>The Manual Workflow — 5 Steps, All Human, Zero Automation</h2>
+    </div>
+    <div class="slide-body">
+      <div class="time-banner animate-in">
+        <div class="time-chip"><div class="tc-icon">⏱️</div><div class="tc-text"><strong>~45 min/product</strong><span>Avg. coordination time per shoot cycle</span></div></div>
+        <div class="time-chip"><div class="tc-icon">📋</div><div class="tc-text"><strong>100% manual entry</strong><span>Every status update done by hand</span></div></div>
+        <div class="time-chip"><div class="tc-icon">👁️</div><div class="tc-text"><strong>0 stakeholders</strong><span>Can see live status at any time</span></div></div>
+        <div class="time-chip"><div class="tc-icon">⚠️</div><div class="tc-text"><strong>High error risk</strong><span>Missing steps = stock displacement</span></div></div>
+      </div>
+      <div class="steps-row animate-in delay-1">
+        <div class="step-card"><div class="step-num">1</div><div class="step-icon">🔍</div><div class="step-title">Check Stock in AX</div><div class="step-desc">Manually review inventory to identify own-brand products with free stock — no alerts, no list.</div><div class="step-pain">⚠ Time-consuming daily check</div></div>
+        <div class="arrow-step">›</div>
+        <div class="step-card"><div class="step-num">2</div><div class="step-icon">🔀</div><div class="step-title">Arrange Bin Transfer</div><div class="step-desc">Manually raise a transfer order in Stock Movement — one by one, no batch action possible.</div><div class="step-pain">⚠ No structured flow or record</div></div>
+        <div class="arrow-step">›</div>
+        <div class="step-card"><div class="step-num">3</div><div class="step-icon">📷</div><div class="step-title">Shoot Product</div><div class="step-desc">Product photographed in studio. System status not updated. Progress tracked on paper only.</div><div class="step-pain">⚠ No visibility to others</div></div>
+        <div class="arrow-step">›</div>
+        <div class="step-card"><div class="step-num">4</div><div class="step-icon">📋</div><div class="step-title">Update Excel Tracker</div><div class="step-desc">Manually update the Excel row with status, date, notes after every action. Easily forgotten.</div><div class="step-pain">⚠ Prone to being forgotten</div></div>
+        <div class="arrow-step">›</div>
+        <div class="step-card"><div class="step-num">5</div><div class="step-icon">⬆️</div><div class="step-title">Upload & Re-Bin</div><div class="step-desc">Upload final image to catalogue AND manually reverse the bin transfer — two separate processes.</div><div class="step-pain">⚠ Double manual update needed</div></div>
+      </div>
+      <div class="before-summary animate-in delay-3">⚠ &nbsp;All 5 steps performed manually — no system automation, no audit trail, and zero cross-team visibility.</div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>3 / 8</span></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 4: PAIN POINTS ══ -->
+<div class="slide" id="s4">
+  <div class="slide-full">
+    <div class="slide-header">
+      <div class="eyebrow">Business Case</div>
+      <h2>Why This Module Was Built — Three Core Bottlenecks</h2>
+    </div>
+    <div class="slide-body">
+      <div class="pain-list">
+        <div class="pain-item animate-in delay-1">
+          <div class="pain-bar" style="background:var(--red)"></div>
+          <div class="pain-icon">📦</div>
+          <div class="pain-text">
+            <h3>Scattered Stock Visibility</h3>
+            <p>Own-brand products in free stock have no centralised shoot visibility. Teams have no single view showing which products are pending, in-shoot, or completed across Bystro, Bagnodesign, and Gymkhana.</p>
+          </div>
+          <div style="margin-left:auto;flex-shrink:0;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:var(--red)">3</div>
+            <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:1px">Brands affected</div>
+          </div>
+        </div>
+        <div class="pain-item animate-in delay-2">
+          <div class="pain-bar" style="background:var(--amber)"></div>
+          <div class="pain-icon">🔀</div>
+          <div class="pain-text">
+            <h3>Manual Bin Moves — The Core Pain</h3>
+            <p>Every product requires a one-by-one submission through the Stock Movement module. After the shoot, the same process must be repeated in reverse — no batch action, no automation, no error recovery.</p>
+          </div>
+          <div style="margin-left:auto;flex-shrink:0;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:var(--amber)">2×</div>
+            <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:1px">Manual entries per item</div>
+          </div>
+        </div>
+        <div class="pain-item animate-in delay-3">
+          <div class="pain-bar" style="background:var(--blue)"></div>
+          <div class="pain-icon">📋</div>
+          <div class="pain-text">
+            <h3>No Real-Time Status Tracking</h3>
+            <p>No single view shows what is Pending Shoot, Scheduled, or Shot Complete across all own-brand products. Status maintained on paper or Excel — invisible to all other stakeholders, with no audit trail.</p>
+          </div>
+          <div style="margin-left:auto;flex-shrink:0;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:var(--blue)">0</div>
+            <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:1px">Live status views</div>
+          </div>
+        </div>
+      </div>
+      <div class="quote-box animate-in delay-4">
+        <div class="qb-icon">💬</div>
+        <div class="qb-text">"Without a centralised system, every shoot cycle relies on one person knowing every step — creating a <strong>single point of failure</strong> across all own-brand photography operations."</div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>4 / 8</span></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 5: SOLUTION ══ -->
+<div class="slide" id="s5">
+  <div class="slide-full">
+    <div class="slide-header" style="border-bottom-color:var(--green)">
+      <div class="eyebrow" style="color:#80ffc0">The Solution</div>
+      <h2>Auto-Population Logic, Smart Entry & Portal Scope</h2>
+    </div>
+    <div class="slide-body">
+      <div class="solution-grid">
+        <div class="sol-panel animate-in delay-1">
+          <div class="sol-panel-header" style="background:var(--navy)">Auto-Population Criteria</div>
+          <div class="sol-panel-body">
+            <p style="font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.6">A product appears in the portal <strong>automatically</strong> — no manual entry required — only when all three conditions are met:</p>
+            <div class="criteria-item"><div class="criteria-num">1</div><div class="criteria-text"><strong>AX Catalog</strong><span>The product exists in the AX ERP system</span></div></div>
+            <div class="criteria-item"><div class="criteria-num">2</div><div class="criteria-text"><strong>"own_product" Attribute = TRUE</strong><span>Attribute flag set to TRUE in AX</span></div></div>
+            <div class="criteria-item"><div class="criteria-num">3</div><div class="criteria-text"><strong>Free Stock Received</strong><span>Initial free stock assigned and received in AX</span></div></div>
+            <div class="flow-note">✓ &nbsp;No manual data entry — portal is always in sync with AX</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="sol-panel animate-in delay-2">
+            <div class="sol-panel-header" style="background:var(--amber)">Exception: "Not Required" Override</div>
+            <div class="sol-panel-body">
+              <p style="font-size:11px;color:var(--dark);margin-bottom:9px;line-height:1.6">If a product already has a final approved image, the operator clicks <strong>"Not Req."</strong> This action:</p>
+              <div class="exc-item">Flags the item directly in AX</div>
+              <div class="exc-item">Excludes it from the portal list permanently</div>
+              <div class="exc-item">Does NOT trigger any bin transfer</div>
+            </div>
+          </div>
+          <div class="sol-panel animate-in delay-3">
+            <div class="sol-panel-header" style="background:var(--blue)">📌 &nbsp;Scope Boundary</div>
+            <div class="sol-panel-body">
+              <div class="scope-note"><strong>Stock logistics & status tracking only.</strong>Final image upload to the product catalogue remains a manual task — an intentional boundary keeping the module focused and reliable.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>5 / 8</span></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 6: WORKFLOW ══ -->
+<div class="slide" id="s6">
+  <div class="slide-full">
+    <div class="slide-header">
+      <div class="eyebrow">Automated Workflow</div>
+      <h2>End-to-End State Machine — Stock Arrival → Shoot Complete</h2>
+    </div>
+    <div class="slide-body">
+      <div class="state-table-wrap animate-in">
+        <table class="state-table">
+          <thead><tr><th style="width:170px">Status</th><th style="width:220px">Trigger / User Action</th><th style="width:36px"></th><th>System Automation</th></tr></thead>
+          <tbody>
+            <tr><td><span class="state-badge" style="background:var(--blue)">Awaiting Photoshoot</span></td><td class="trigger-cell">Operator clicks [Assign to Photoshoot]</td><td class="arrow-cell">→</td><td class="auto-cell">Instantly creates a new <strong>bin-to-bin transfer order</strong> in AX. Stock moves from free-stock bin to the photoshoot studio bin automatically.</td></tr>
+            <tr><td><span class="state-badge" style="background:var(--amber)">In Progress</span></td><td class="trigger-cell">Physical stock transfer completes in AX</td><td class="arrow-cell">→</td><td class="auto-cell">System shifts status to <strong>"In Progress"</strong>. Action button updates to [Shoot Complete]. All stakeholders see live status instantly.</td></tr>
+            <tr><td><span class="state-badge" style="background:var(--green)">Shoot Complete</span></td><td class="trigger-cell">Operator sets status to "Shoot Complete"</td><td class="arrow-cell">→</td><td class="auto-cell">Initiates a <strong>JSON call to the AX API</strong> — stock automatically returned from shoot bin to its original bin. [Assign] button disabled permanently.</td></tr>
+            <tr><td><span class="state-badge" style="background:var(--gray)">Not Required</span></td><td class="trigger-cell">Operator clicks [Not Req.]</td><td class="arrow-cell">→</td><td class="auto-cell">Product <strong>flagged in AX</strong> and excluded from portal list. No bin change triggered — product already has an approved image.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Visual flow diagram -->
+      <div class="flow-diagram animate-in delay-2">
+        <div class="flow-node">
+          <div class="flow-node-circle" style="background:var(--light-blue);border-color:var(--blue)">📦</div>
+          <div class="flow-node-label">Free Stock<br>Arrives</div>
+          <div class="flow-node-sub">Auto-listed in portal</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-node-circle" style="background:var(--light-blue);border-color:var(--blue)">🕐</div>
+          <div class="flow-node-label">Awaiting<br>Photoshoot</div>
+          <div class="flow-node-sub">One-click assign</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-node-circle" style="background:var(--amber-light);border-color:var(--amber)">🔀</div>
+          <div class="flow-node-label">In Progress</div>
+          <div class="flow-node-sub">Bin transfer active</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-node-circle" style="background:var(--green-light);border-color:var(--green)">✅</div>
+          <div class="flow-node-label">Shoot Complete</div>
+          <div class="flow-node-sub">AX bin reverted</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-left:20px;border-left:2px dashed var(--border);margin-left:16px;flex-shrink:0">
+          <div class="flow-node">
+            <div class="flow-node-circle" style="background:#f5f5f5;border-color:var(--gray)">🚫</div>
+            <div class="flow-node-label">Not Required</div>
+            <div class="flow-node-sub">Flagged in AX</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;background:var(--light-blue);border-radius:8px;padding:10px 16px;font-size:11.5px;color:var(--navy);font-weight:600;animation:slideUp .5s .4s both;flex-shrink:0">
+        💡 &nbsp;Every state change is system-logged — providing a full, queryable audit trail for all own-brand products across all three brands.
+      </div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>6 / 8</span></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 7: LIVE PORTAL ══ -->
+<div class="slide" id="s7">
+  <div class="slide-full">
+    <div class="slide-header">
+      <div class="eyebrow">Live Portal Demo · Click the buttons — statuses update in real time</div>
+      <h2>Product List View — Interactive Status Tracker</h2>
+    </div>
+    <div class="slide-body" style="padding-top:16px">
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-chip chip-blue"><div class="stat-num" id="cnt-awaiting">3</div><div class="stat-lbl">Awaiting</div></div>
+        <div class="stat-chip chip-amber"><div class="stat-num" id="cnt-inprog">1</div><div class="stat-lbl">In Progress</div></div>
+        <div class="stat-chip chip-green"><div class="stat-num" id="cnt-complete">1</div><div class="stat-lbl">Complete</div></div>
+        <div class="stat-chip chip-gray"><div class="stat-num" id="cnt-notreq">0</div><div class="stat-lbl">Not Required</div></div>
+      </div>
+      <div class="portal-layout">
+        <div class="portal-frame">
+          <div class="portal-topbar">
+            <div class="portal-search">🔍 &nbsp;Search product code...</div>
+            <button onclick="resetAll()" style="padding:5px 13px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:9.5px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">↺ Reset</button>
+          </div>
+          <table class="portal-table">
+            <thead><tr><th>Product Code</th><th>Brand</th><th>Bin</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="portal-tbody"></tbody>
+          </table>
+        </div>
+        <div class="portal-right">
+          <!-- Donut chart -->
+          <div class="donut-panel">
+            <div class="donut-title">Shoot Progress</div>
+            <div class="donut-wrap">
+              <svg id="donut-svg" width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="28" fill="none" stroke="#f0f0f0" stroke-width="10"/>
+                <circle id="donut-complete" cx="36" cy="36" r="28" fill="none" stroke="var(--green)" stroke-width="10" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="140" transform="rotate(-90 36 36)" style="transition:stroke-dashoffset .6s ease"/>
+                <circle id="donut-inprog" cx="36" cy="36" r="28" fill="none" stroke="var(--amber)" stroke-width="10" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="105" transform="rotate(-90 36 36)" style="transition:stroke-dashoffset .6s ease;opacity:.5"/>
+                <text x="36" y="40" text-anchor="middle" font-size="13" font-weight="900" fill="var(--navy)" id="donut-pct">20%</text>
+              </svg>
+              <div class="donut-legend">
+                <div class="dl-item"><div class="dl-dot" style="background:var(--green)"></div><span class="dl-text" id="dl-complete">1 Complete</span></div>
+                <div class="dl-item"><div class="dl-dot" style="background:var(--amber)"></div><span class="dl-text" id="dl-inprog">1 In Progress</span></div>
+                <div class="dl-item"><div class="dl-dot" style="background:var(--blue)"></div><span class="dl-text" id="dl-awaiting">3 Awaiting</span></div>
+                <div class="dl-item"><div class="dl-dot" style="background:var(--gray)"></div><span class="dl-text" id="dl-notreq">0 Not Req.</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- Activity log -->
+          <div class="activity-log">
+            <div class="log-header"><div class="log-dot"></div>Activity Log</div>
+            <div class="log-body" id="log-body">
+              <div class="log-empty" id="log-empty">No activity yet.<br>Click a button to start.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>7 / 8</span></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 8: BEFORE vs AFTER ══ -->
+<div class="slide" id="s8">
+  <div class="slide-full">
+    <div class="slide-header">
+      <div class="eyebrow">Transformation Summary</div>
+      <h2>Before vs. After — What Changes for the Team</h2>
+    </div>
+    <div class="slide-body">
+      <div class="comparison animate-in">
+        <div class="comp-col">
+          <div class="comp-col-header" style="background:var(--red)">✗ &nbsp;BEFORE &nbsp;·&nbsp; Manual Process</div>
+          <div class="comp-rows">
+            <div class="comp-row before">✗ &nbsp;Manual daily inventory check in AX</div>
+            <div class="comp-row before">✗ &nbsp;One-by-one bin transfer per product</div>
+            <div class="comp-row before">✗ &nbsp;Paper / Excel status tracking</div>
+            <div class="comp-row before">✗ &nbsp;No cross-team visibility</div>
+            <div class="comp-row before">✗ &nbsp;Manual bin reversal after every shoot</div>
+            <div class="comp-row before">✗ &nbsp;Risk of stock displacement errors</div>
+            <div class="comp-row before" style="font-weight:700">✗ &nbsp;5 steps, all performed by hand</div>
+          </div>
+        </div>
+        <div class="comp-divider"></div>
+        <div class="comp-col">
+          <div class="comp-col-header" style="background:var(--green)">✓ &nbsp;AFTER &nbsp;·&nbsp; Automated Portal</div>
+          <div class="comp-rows">
+            <div class="comp-row after">✓ &nbsp;Auto-populated product list from AX</div>
+            <div class="comp-row after">✓ &nbsp;One-click bin transfer, instantly in AX</div>
+            <div class="comp-row after">✓ &nbsp;Live system status visible to all teams</div>
+            <div class="comp-row after">✓ &nbsp;Real-time shoot status dashboard</div>
+            <div class="comp-row after">✓ &nbsp;Automatic bin reversion via AX API</div>
+            <div class="comp-row after">✓ &nbsp;Full audit trail — every state logged</div>
+            <div class="comp-row after highlight">✓ &nbsp;1 click. 0 manual steps. 100% tracked.</div>
+          </div>
+        </div>
+      </div>
+      <!-- Outcome strip -->
+      <div class="outcome-strip animate-in delay-3">
+        <div class="outcome-chip"><div class="oc-icon">⏱️</div><div><div class="oc-num">~45 min</div><div class="oc-lbl">saved per product cycle</div></div></div>
+        <div class="outcome-chip"><div class="oc-icon">🚫</div><div><div class="oc-num">0</div><div class="oc-lbl">Excel sheets required</div></div></div>
+        <div class="outcome-chip"><div class="oc-icon">🔁</div><div><div class="oc-num">Auto</div><div class="oc-lbl">bin reversion via AX API</div></div></div>
+        <div class="outcome-chip"><div class="oc-icon">👥</div><div><div class="oc-num">All teams</div><div class="oc-lbl">see live shoot status</div></div></div>
+        <div class="outcome-chip"><div class="oc-icon">🏷️</div><div><div class="oc-num">3 brands</div><div class="oc-lbl">in one unified portal</div></div></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>SANIPEXGROUP · CONFIDENTIAL</span><span>8 / 8</span></div>
+  </div>
+</div>
+
+</div><!-- slide-wrapper -->
+
+<div id="nav">
+  <button class="nav-btn" onclick="navigate(-1)">‹</button>
+  <div class="nav-dots" id="dots"></div>
+  <button class="nav-btn" onclick="navigate(1)">›</button>
+  <span id="slide-counter">1 / 8</span>
+</div>
+<div id="kb-hint">← → arrow keys to navigate</div>
+</div><!-- app -->
+
+<script>
+// ── SLIDE NAV ──
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+let current=0,animating=false;
+const dotsEl=document.getElementById('dots');
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.addEventListener('click',()=>goTo(i));
+  dotsEl.appendChild(d);
+});
+function goTo(idx){
+  if(animating||idx===current||idx<0||idx>=total)return;
+  animating=true;
+  const old=slides[current],next=slides[idx],dir=idx>current?1:-1;
+  old.classList.remove('active');
+  old.style.transform=dir>0?'translateX(-60px)':'translateX(60px)';
+  old.style.opacity='0';
+  next.style.transform=dir>0?'translateX(60px)':'translateX(-60px)';
+  next.style.opacity='0';
+  next.classList.add('active');
+  next.getBoundingClientRect();
+  next.style.transition='opacity .45s cubic-bezier(.4,0,.2,1),transform .45s cubic-bezier(.4,0,.2,1)';
+  next.style.transform='translateX(0)';next.style.opacity='1';
+  next.querySelectorAll('.animate-in').forEach(el=>{el.style.animation='none';el.getBoundingClientRect();el.style.animation='';});
+  setTimeout(()=>{old.style.cssText='';next.style.transition='';animating=false;},460);
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  document.getElementById('slide-counter').textContent=(idx+1)+' / '+total;
+  current=idx;
+  // trigger counter animation on slides 1 & 2
+  if(idx===0)animateCounters(document.getElementById('s1'));
+  if(idx===1)setTimeout(()=>animateCounters(document.getElementById('s2')),300);
+}
+function navigate(dir){goTo(current+dir);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')navigate(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')navigate(-1);
+});
+
+// ── COUNTER ANIMATION ──
+function animateCounters(scope){
+  scope.querySelectorAll('[data-count]').forEach(el=>{
+    const target=parseInt(el.dataset.count);
+    let cur=0;
+    const step=Math.ceil(target/20);
+    const id=setInterval(()=>{
+      cur=Math.min(cur+step,target);
+      el.textContent=cur;
+      if(cur>=target)clearInterval(id);
+    },50);
+  });
+}
+// Run on load for slide 1
+setTimeout(()=>animateCounters(document.getElementById('s1')),600);
+
+// ── LIVE PORTAL ──
+const STATUSES={
+  AWAITING:  {label:'Awaiting Shoot', color:'var(--blue)'},
+  INPROGRESS:{label:'In Progress',    color:'var(--amber)'},
+  COMPLETE:  {label:'Shoot Complete', color:'var(--green)'},
+  NOTREQ:    {label:'Not Required',   color:'var(--gray)'},
+};
+let products=[
+  {id:'p1',code:'BDM-GIN-531-CP',brand:'BAGNODESIGN',bin:'B-12',      status:'AWAITING'},
+  {id:'p2',code:'BYS-TAP-224-BN',brand:'BYSTRO',     bin:'JA-STUDIO', status:'INPROGRESS'},
+  {id:'p3',code:'GYM-ACC-117-CP',brand:'GYMKHANA',   bin:'A-07',      status:'COMPLETE'},
+  {id:'p4',code:'BDM-SHW-088-MT',brand:'BAGNODESIGN',bin:'C-03',      status:'AWAITING'},
+  {id:'p5',code:'GYM-MIR-055-GD',brand:'GYMKHANA',   bin:'D-09',      status:'AWAITING'},
+];
+const initial=JSON.parse(JSON.stringify(products));
+
+let toastTimer=null;
+function showToast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+function addLog(type,text){
+  const body=document.getElementById('log-body');
+  const empty=document.getElementById('log-empty');
+  if(empty)empty.remove();
+  const now=new Date();
+  const time=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const e=document.createElement('div');
+  e.className=`log-entry ${type}`;
+  e.innerHTML=`<div class="log-time">${time}</div><div class="log-text">${text}</div>`;
+  body.insertBefore(e,body.firstChild);
+}
+function updateStats(){
+  const aw=products.filter(p=>p.status==='AWAITING').length;
+  const ip=products.filter(p=>p.status==='INPROGRESS').length;
+  const cp=products.filter(p=>p.status==='COMPLETE').length;
+  const nr=products.filter(p=>p.status==='NOTREQ').length;
+  document.getElementById('cnt-awaiting').textContent=aw;
+  document.getElementById('cnt-inprog').textContent=ip;
+  document.getElementById('cnt-complete').textContent=cp;
+  document.getElementById('cnt-notreq').textContent=nr;
+  // update donut
+  const tot=products.length;
+  const pct=Math.round(cp/tot*100);
+  const circ=175.9;
+  document.getElementById('donut-complete').style.strokeDashoffset=circ-(circ*cp/tot);
+  document.getElementById('donut-inprog').style.strokeDashoffset=circ-(circ*(cp+ip)/tot);
+  document.getElementById('donut-pct').textContent=pct+'%';
+  document.getElementById('dl-complete').textContent=cp+' Complete';
+  document.getElementById('dl-inprog').textContent=ip+' In Progress';
+  document.getElementById('dl-awaiting').textContent=aw+' Awaiting';
+  document.getElementById('dl-notreq').textContent=nr+' Not Req.';
+}
+function getActions(p){
+  if(p.status==='AWAITING')return`<button class="action-btn btn-assign" onclick="assignShoot('${p.id}')">📷 Assign</button><button class="action-btn btn-notreq" onclick="markNotReq('${p.id}')">✕ Not Req.</button>`;
+  if(p.status==='INPROGRESS')return`<button class="action-btn btn-complete" onclick="markComplete('${p.id}')">✅ Shoot Complete</button>`;
+  if(p.status==='COMPLETE')return`<span style="font-size:10px;color:var(--green);font-weight:600">✓ Bin reverted</span>`;
+  if(p.status==='NOTREQ')return`<span style="font-size:10px;color:var(--gray)">Flagged in AX</span>`;
+  return'';
+}
+function renderTable(){
+  const tbody=document.getElementById('portal-tbody');
+  tbody.innerHTML='';
+  products.forEach(p=>{
+    const s=STATUSES[p.status];
+    const tr=document.createElement('tr');
+    tr.id='row-'+p.id;
+    tr.innerHTML=`<td><strong>${p.code}</strong></td><td>${p.brand}</td><td id="bin-${p.id}">${p.bin}</td><td><span class="status-pill" id="pill-${p.id}" style="background:${s.color}">${s.label}</span></td><td id="actions-${p.id}">${getActions(p)}</td>`;
+    tbody.appendChild(tr);
+  });
+  updateStats();
+}
+function flashRow(id){
+  const r=document.getElementById('row-'+id);
+  if(!r)return;
+  r.classList.remove('row-flash');void r.offsetWidth;r.classList.add('row-flash');
+}
+function assignShoot(id){
+  const p=products.find(x=>x.id===id);
+  if(!p||p.status!=='AWAITING')return;
+  p.status='INPROGRESS';p.bin='JA-STUDIO';
+  const s=STATUSES['INPROGRESS'];
+  document.getElementById('pill-'+id).style.background=s.color;
+  document.getElementById('pill-'+id).textContent=s.label;
+  document.getElementById('bin-'+id).textContent='JA-STUDIO';
+  document.getElementById('actions-'+id).innerHTML=getActions(p);
+  flashRow(id);updateStats();
+  showToast('🔀',`${p.code} assigned — bin transfer created in AX`);
+  addLog('assign',`<strong>${p.code}</strong> → Assigned to Photoshoot. Bin transfer created in AX. Status: <strong>In Progress</strong>.`);
+}
+function markComplete(id){
+  const p=products.find(x=>x.id===id);
+  if(!p||p.status!=='INPROGRESS')return;
+  p.status='COMPLETE';
+  const origBin=initial.find(x=>x.id===id).bin;
+  p.bin=origBin;
+  const s=STATUSES['COMPLETE'];
+  document.getElementById('pill-'+id).style.background=s.color;
+  document.getElementById('pill-'+id).textContent=s.label;
+  document.getElementById('bin-'+id).textContent=origBin;
+  document.getElementById('actions-'+id).innerHTML=getActions(p);
+  flashRow(id);updateStats();
+  showToast('✅',`${p.code} shoot complete — AX bin reverted to ${origBin}`);
+  addLog('complete',`<strong>${p.code}</strong> → Shoot Complete. AX API revert triggered. Stock back at <strong>${origBin}</strong>.`);
+}
+function markNotReq(id){
+  const p=products.find(x=>x.id===id);
+  if(!p||p.status!=='AWAITING')return;
+  p.status='NOTREQ';
+  const s=STATUSES['NOTREQ'];
+  document.getElementById('pill-'+id).style.background=s.color;
+  document.getElementById('pill-'+id).textContent=s.label;
+  document.getElementById('actions-'+id).innerHTML=getActions(p);
+  flashRow(id);updateStats();
+  showToast('🚫',`${p.code} marked Not Required — flagged in AX`);
+  addLog('notreq',`<strong>${p.code}</strong> → Not Required. Flagged in AX. No bin change triggered.`);
+}
+function resetAll(){
+  products=JSON.parse(JSON.stringify(initial));
+  document.getElementById('log-body').innerHTML='<div class="log-empty" id="log-empty">No activity yet.<br>Click a button to start.</div>';
+  renderTable();
+  showToast('↺','Demo reset — all statuses restored');
+}
+renderTable();
+</script>
+</body>
+</html>
